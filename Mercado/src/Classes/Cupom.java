@@ -75,10 +75,6 @@ public class Cupom extends JFrame {
         voltarCupom.setBackground(new Color(255, 149, 149));
         voltarCupom.setBounds(88, 182, 260, 23);
         contentPane.add(voltarCupom);
-        
-        JButton btnNewButton = new JButton("New button");
-        btnNewButton.setBounds(176, 28, 89, 23);
-        contentPane.add(btnNewButton);
 
         btnSair.addActionListener(e -> System.exit(0));
     }
