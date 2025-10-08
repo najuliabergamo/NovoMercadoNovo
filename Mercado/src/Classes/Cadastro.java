@@ -28,19 +28,6 @@ public class Cadastro extends JFrame {
     private JPasswordField CdCrie;
     private JPasswordField CdConfirme;
 
-    public static void main(String[] args) {
-        EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                try {
-                    Cadastro frame = new Cadastro();
-                    frame.setVisible(true);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
-
     public Cadastro() {
         setTitle("CADASTRO");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

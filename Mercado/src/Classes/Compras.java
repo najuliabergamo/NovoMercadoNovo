@@ -50,21 +50,22 @@ public class Compras extends JFrame {
         table = new JTable();
         scrollPane.setViewportView(table);
 
-        // Modelo com coluna de checkbox
+        // Modelo com a coluna de quantidade
         table.setModel(new DefaultTableModel(
             new Object[][] {},
-            new String[] {"Selecionar", "ID", "Produto", "Valor", "Resumo"}
+            new String[] {"Selecionar", "ID", "Produto", "Valor", "Resumo", "Quantidade"}
         ) {
             @Override
             public Class<?> getColumnClass(int columnIndex) {
                 if (columnIndex == 0) return Boolean.class; // checkbox
                 if (columnIndex == 3) return Double.class; // preço
+                if (columnIndex == 5) return Integer.class; // quantidade (número inteiro)
                 return Object.class;
             }
 
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 0; // só a checkbox é editável
+                return column == 0; // Só a checkbox é editável
             }
         });
 
@@ -116,8 +117,33 @@ public class Compras extends JFrame {
             for (int i = 0; i < table.getRowCount(); i++) {
                 Boolean selecionado = (Boolean) table.getValueAt(i, 0);
                 if (selecionado != null && selecionado) {
+                    int quantidadeEmEstoque = (int) table.getValueAt(i, 5); // Quantidade em estoque
                     double preco = (double) table.getValueAt(i, 3);
                     total += preco;
+
+                    // Verifica se há estoque suficiente
+                    if (quantidadeEmEstoque <= 0) {
+                        JOptionPane.showMessageDialog(this, "Produto sem estoque!");
+                        return; // Não pode comprar produto sem estoque
+                    }
+
+                    // Subtrai 1 da quantidade em estoque
+                    try (Connection conn = Conexao.conectar()) {
+                        if (conn == null) {
+                            JOptionPane.showMessageDialog(this, "Erro ao conectar ao banco!");
+                            return;
+                        }
+
+                        // Atualiza a quantidade de produto no estoque
+                        String sql = "UPDATE produtos SET quantidade = quantidade - 1 WHERE id = ?";
+                        PreparedStatement ps = conn.prepareStatement(sql);
+                        ps.setInt(1, (int) table.getValueAt(i, 1)); // ID do produto
+                        ps.executeUpdate();
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(this, "Erro ao atualizar estoque: " + ex.getMessage());
+                        ex.printStackTrace();
+                    }
+
                     algumSelecionado = true;
                 }
             }
@@ -153,15 +179,16 @@ public class Compras extends JFrame {
             ResultSet rs = ps.executeQuery();
 
             DefaultTableModel modelo = (DefaultTableModel) table.getModel();
-            modelo.setRowCount(0); 
+            modelo.setRowCount(0); // Limpa a tabela antes de adicionar as novas linhas
 
             while (rs.next()) {
                 Vector<Object> row = new Vector<>();
-                row.add(false);
+                row.add(false); // Checkbox para selecionar o produto
                 row.add(rs.getInt("id"));
                 row.add(rs.getString("nome"));
                 row.add(rs.getDouble("preco"));
                 row.add(rs.getString("resumo"));
+                row.add(rs.getInt("quantidade")); // Exibe a quantidade em estoque
                 modelo.addRow(row);
             }
 
